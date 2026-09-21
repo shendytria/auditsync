@@ -1,0 +1,5 @@
+Contact: mailto:ferdinand.natanael@kalbeconsumerhealth.co.id
+Contact: mailto:ameliawati.indawan@kalbeconsumerhealth.co.id
+Expires: 2026-10-10T00:00:00.000Z
+Preferred-Languages: id, en
+Canonical: https://auditsync.kalbeconsumerhealth.com/.well-known/security.txt

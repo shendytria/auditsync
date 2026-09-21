@@ -1,0 +1,32 @@
+version: "3.3"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: e-audit-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./backend/uploads:/app/uploads
+    environment:
+      - GIN_MODE=release
+    extra_hosts:
+      - "host.docker.internal:172.19.240.1"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_ORIGIN: ${NEXT_PUBLIC_API_ORIGIN}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_API_LOGIN_URL: ${NEXT_PUBLIC_API_LOGIN_URL}
+    container_name: e-audit-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
