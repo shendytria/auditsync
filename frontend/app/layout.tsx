@@ -2,6 +2,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'AuditSync Bintang Toedjoe',
   description: 'Sistem E-Audit',
