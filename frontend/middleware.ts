@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const INTERNAL_PREFIXES = [
+  '/dashboard',
+  '/users',
+  '/checklist',
+  '/laporan-temuan',
+  '/laporan-bukti-perbaikan',
+  '/verifikasi',
+  '/report',
+  '/audit-trail',
+  '/setting',
+  '/profile',
+];
+
 const ALLOWED_PARAMS: Record<string, string[]> = {
   '/': [],
   '/login': [],
@@ -8,13 +21,15 @@ const ALLOWED_PARAMS: Record<string, string[]> = {
   '/reset-password': ['token'],
 };
 
-function buildCsp(nonce: string) {
+function buildCsp(nonce: string, isInternal: boolean = false) {
   const isDev = process.env.NODE_ENV !== 'production';
   return [
     "default-src 'self'",
     `script-src 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''}`,
     "worker-src 'self' blob:",
-    "style-src 'self' 'unsafe-inline'",
+    isInternal
+      ? "style-src 'self' 'unsafe-inline'"
+      : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data: https://placehold.co",
     "font-src 'self'",
     "connect-src 'self' data:",
@@ -27,7 +42,15 @@ function buildCsp(nonce: string) {
 
 export function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = buildCsp(nonce);
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Hanya halaman terautentikasi internal yang memakai CSP longgar (style-src 'unsafe-inline' untuk Recharts)
+  // Semua path lainnya (publik, 404, probe scanner seperti /.env, /admin) mendapat CSP ketat default
+  const isInternal = INTERNAL_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/')
+  );
+  const csp = buildCsp(nonce, isInternal);
+
   const withCsp = (res: NextResponse) => {
     res.headers.set('Content-Security-Policy', csp);
     return res;
@@ -40,8 +63,6 @@ export function middleware(request: NextRequest) {
   if (routerTree && /[^A-Za-z0-9_.!~*'()%-]/.test(routerTree)) {
     return withCsp(new NextResponse('Bad Request', { status: 400 }));
   }
-
-  const { pathname, searchParams } = request.nextUrl;
 
   if (pathname === '/_next/image') {
     const imgUrl = searchParams.get('url') ?? '';

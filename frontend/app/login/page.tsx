@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
@@ -103,8 +102,8 @@ export default function LoginPage() {
       // Clear sensitive state before redirect
       setPassword('')
 
-      // Redirect
-      router.push('/dashboard')
+      // Redirect with full page navigation so internal CSP (style-src 'unsafe-inline') is loaded
+      window.location.href = '/dashboard'
     } catch (err: any) {
       console.error('Login Error:', err)
 
@@ -126,12 +125,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 space-y-4 bg-putih rounded shadow-xl">
         
         <div className="flex justify-center mb-4">
-          <Image
+          <img
             src="/logoOnly.png"
             alt="Logo E-Audit"
             width={60}
-            height={60}
-            priority
+            height={153}
+            className="w-[60px] h-auto"
           />
         </div>
 
